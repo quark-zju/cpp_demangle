@@ -276,7 +276,20 @@ substitutions = {:#?}",
         &self,
         options: &DemangleOptions,
     ) -> ::core::result::Result<String, fmt::Error> {
-        let mut out = String::new();
+        // let mut out = std::io::stdout();
+        
+struct W;
+
+impl std::fmt::Write for W {
+    fn write_str(&mut self, s: &str) -> std::fmt::Result {
+        if s.len() > 1000 {
+            return Ok(())
+        }
+        print!("{}", s);
+        Ok(())
+    }
+}
+let mut out = W;
         {
             let mut ctx = ast::DemangleContext::new(
                 &self.substitutions,
@@ -287,7 +300,7 @@ substitutions = {:#?}",
             self.parsed.demangle(&mut ctx, None)?;
         }
 
-        Ok(out)
+        Ok(String::new())
     }
 
     /// Demangle the symbol to a DemangleWrite, which lets the consumer be informed about

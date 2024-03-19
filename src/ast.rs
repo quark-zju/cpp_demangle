@@ -191,7 +191,7 @@ impl ParseContext {
     /// Construct a new `ParseContext`.
     pub fn new(options: ParseOptions) -> ParseContext {
         ParseContext {
-            max_recursion: options.recursion_limit.map(|v| v.get()).unwrap_or(96),
+            max_recursion: options.recursion_limit.map(|v| v.get()).unwrap_or(150),
             state: Cell::new(ParseContextState::default()),
         }
     }
@@ -603,7 +603,7 @@ where
     ) -> DemangleContext<'a, W> {
         DemangleContext {
             subs: subs,
-            max_recursion: options.recursion_limit.map(|v| v.get()).unwrap_or(128),
+            max_recursion: options.recursion_limit.map(|v| v.get()).unwrap_or(300),
             inner: vec![],
             input: input,
             source_name: None,

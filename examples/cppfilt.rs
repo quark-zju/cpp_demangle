@@ -38,6 +38,7 @@ fn find_mangled(haystack: &[u8]) -> Option<usize> {
     None
 }
 
+
 /// Print the given `line` to `out`, with all mangled C++ symbols replaced with
 /// their demangled form.
 fn demangle_line<W>(out: &mut W, line: &[u8], options: DemangleOptions) -> io::Result<()>
@@ -47,18 +48,24 @@ where
     let mut line = line;
 
     while let Some(idx) = find_mangled(line) {
+        dbg!(idx);
         write!(out, "{}", String::from_utf8_lossy(&line[..idx]))?;
 
-        if let Ok((sym, tail)) = BorrowedSymbol::with_tail(&line[idx..]) {
+        match BorrowedSymbol::with_tail(&line[idx..]) {
+         Ok((sym, tail)) => {
+            // dbg!(&sym, tail);
             let demangled = sym
                 .demangle(&options)
                 .map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
             write!(out, "{}", demangled)?;
             line = tail;
-        } else {
+        },
+        Err(e) => {
+            dbg!(e);
             write!(out, "_Z")?;
             line = &line[2..];
         }
+    }
     }
 
     write!(out, "{}", String::from_utf8_lossy(line))
@@ -104,7 +111,7 @@ struct Cli {
     mangled_names: Vec<String>,
 }
 
-fn main() {
+fn main1() {
     let cli = Cli::parse();
 
     let stdin = io::stdin();
@@ -150,4 +157,19 @@ fn main() {
     };
 
     process::exit(code);
+}
+
+use std::thread;
+
+const STACK_SIZE: usize = 400 * 1024 * 1024;
+
+fn main() {
+    // Spawn thread with explicit stack size
+    let child = thread::Builder::new()
+        .stack_size(STACK_SIZE)
+        .spawn(main1)
+        .unwrap();
+
+    // Wait for thread to join
+    child.join().unwrap();
 }
